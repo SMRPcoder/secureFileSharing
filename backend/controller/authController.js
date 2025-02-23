@@ -2,6 +2,7 @@ const { request, response } = require("express");
 const { RegisterValidator, LoginValidator } = require("../validations/auth.validation");
 const User = require("../models/User");
 const jwt=require("jsonwebtoken");
+const bcrypt=require("bcrypt");
 
 
 exports.register=async (req,res)=>{
@@ -32,8 +33,14 @@ exports.login=async (req,res)=>{
     }else{
         const userData=await User.findOne({username:loginBody.username});
         if(userData){
-            const token=jwt.sign({id:userData.id,username:userData.username,firstName:userData.firstName,lastName:userData.lastName},process.env.JWT_SECRET,{expiresIn:"24h"});
-            res.status(200).json({message:"Login Success",token,status:true});
+            const isVerified=await bcrypt.compare(loginBody.password,userData.password);
+            if(isVerified){
+                const token=jwt.sign({id:userData.id,username:userData.username,firstName:userData.firstName,lastName:userData.lastName},process.env.JWT_SECRET,{expiresIn:"24h"});
+                res.status(200).json({message:"Login Success",token,status:true});
+            }else{
+                res.status(401).json({message:"Password Missmatch!!",status:false});
+            }
+            
         }else{
             res.status(400).json({message:"No Data Found!",status:false});
         }
