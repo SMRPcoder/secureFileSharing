@@ -41,7 +41,11 @@ export default function Header({ isOpen, setIsOpen }: { isOpen: boolean; setIsOp
                                     className='hover:text-[#007bff] text-[#007bff] block font-semibold text-[15px]'>Home</a>
                             </li>
                             <li className='max-lg:border-b border-gray-300 max-lg:py-3 px-3'>
-                                <a href='#'
+                                <a href='/invites'
+                                    className='hover:text-[#007bff] text-[#007bff] block font-semibold text-[15px]'>Invites</a>
+                            </li>
+                            <li className='max-lg:border-b border-gray-300 max-lg:py-3 px-3'>
+                                <a href='/contacts'
                                     className='hover:text-[#007bff] text-[#007bff] block font-semibold text-[15px]'>Contacts</a>
                             </li>
                             <li className='max-lg:border-b border-gray-300 max-lg:py-3 px-3'>
