@@ -6,7 +6,8 @@ const InviteRouter=Router();
 
 InviteRouter.post("/sent",AuthUser,inviteController.sentInvite);
 InviteRouter.get("/viewAll",AuthUser,inviteController.viewAllInvite);
-InviteRouter.post("/delete",AuthUser,inviteController.deleteInvite);
+InviteRouter.delete("/delete",AuthUser,inviteController.deleteInvite);
+InviteRouter.post("/reject",AuthUser,inviteController.rejectInvite);
 
 
 

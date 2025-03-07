@@ -1,21 +1,29 @@
 const { request, response } = require("express");
 const User = require("../models/User");
 const Contact = require("../models/Contact");
+const Invite = require("../models/Invite");
 
 
 
 
 exports.addContact = async (req = request, res = response) => {
     try {
-        const { contactPersonId } = req.body;
-        const userData = await User.findOne({ where: { id: contactPersonId } });
-        if (userData) {
-            const newContactData = { userId: req.userId, contactPersonId };
-            await Contact.create(newContactData);
-            res.status(201).json({ message: "created successfully!", status: true });
-        } else {
-            res.status(400).json({ message: "Invalid Contact!", status: false });
+        const { id } = req.body;
+        const inviteData=await Invite.findOne({where:{id,sentTo:req.userId}});
+        if(inviteData){
+            const userData = await User.findOne({ where: { id: inviteData.userId } });
+            if (userData) {
+                const newContactData = { userId: req.userId, contactPersonId:inviteData.userId };
+                await Contact.create(newContactData);
+                await inviteData.update({status:"accepted"});
+                res.status(201).json({ message: "created successfully!", status: true });
+            } else {
+                res.status(400).json({ message: "Invalid Contact!", status: false });
+            }
+        }else {
+            res.status(400).json({ message: "Invalid Invite!", status: false });
         }
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Error Happend!", status: false });

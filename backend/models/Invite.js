@@ -24,10 +24,10 @@ const Invite=db.define("invites",{
     }
 },{timestamps:true});
 
-Invite.belongsTo(User);
-User.hasMany(Contact);
+Invite.belongsTo(User, {foreignKey:"userId", as:"sender"});
+User.hasMany(Invite,{foreignKey:"userId", as:"sender"});
 
-Invite.belongsTo(User,{foreignKey:"sentTo"});
-User.hasMany(Contact,{foreignKey:"sentTo"});
+Invite.belongsTo(User,{foreignKey:"sentTo", as:"receiver"});
+User.hasMany(Invite,{foreignKey:"sentTo",as:"receiver"});
 
 module.exports=Invite;

@@ -2,6 +2,9 @@ const express=require("express");
 const cors =require("cors");
 const db = require("./db/connection");
 const AuthRouter = require("./router/authRouter");
+const userRouter = require("./router/userRouter");
+const InviteRouter = require("./router/inviteRouter");
+const ContactRouter = require("./router/contactRouter");
 const app=express();
 require("dotenv").config();
 
@@ -24,6 +27,9 @@ app.get("/",(req,res)=>{
 })
 
 app.use("/auth",AuthRouter);
+app.use("/user",userRouter);
+app.use("/invites",InviteRouter);
+app.use("/contacts",ContactRouter);
 
 
 app.listen(3000,()=>{

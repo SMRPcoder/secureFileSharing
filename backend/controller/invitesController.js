@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const Invite = require("../models/Invite");
+const User = require("../models/User");
 
 
 exports.sentInvite=async (req,res)=>{
@@ -20,7 +21,13 @@ exports.sentInvite=async (req,res)=>{
 
 exports.viewAllInvite=async (req,res)=>{
     try {
-        const InviteData=await Invite.findAll({where:{userId:req.userId,status:"pending"}});
+        const InviteData=await Invite.findAll({
+            where:{sentTo:req.userId,status:"pending"},
+            attributes:["id"],
+            include:[
+                {model:User,attributes:["id","firstName","lastName","username"], as:"sender"}
+            ]
+        });
         res.status(200).json({data:InviteData,status:true});
     } catch (error) {
         console.log(error);
@@ -30,10 +37,27 @@ exports.viewAllInvite=async (req,res)=>{
 
 exports.deleteInvite=async (req,res)=>{
     try {
-        const InviteData=await Invite.findOne({where:{userId:req.userId,status:"pending"}});
+        const {id}=req.body;
+        const InviteData=await Invite.findOne({where:{id,userId:req.userId,status:"pending"}});
         if(InviteData){
             await InviteData.destroy();
             res.status(200).json({message:"Deleted!",status:true});
+        }else{
+            res.status(400).json({message:"Invalid Id Given!",status:false});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Error Happend!", status: false });
+    }
+}
+
+exports.rejectInvite=async (req,res)=>{
+    try {
+        const {id}=req.body;
+        const InviteData=await Invite.findOne({where:{id,sentTo:req.userId,status:"pending"}});
+        if(InviteData){
+            await InviteData.update({status:"rejected"});
+            res.status(200).json({message:"Rejected!",status:true});
         }else{
             res.status(400).json({message:"Invalid Id Given!",status:false});
         }
