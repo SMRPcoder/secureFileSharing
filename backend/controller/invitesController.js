@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const Invite = require("../models/Invite");
 const User = require("../models/User");
+const { request } = require("express");
 
 
 exports.sentInvite=async (req,res)=>{
@@ -21,13 +22,26 @@ exports.sentInvite=async (req,res)=>{
 
 exports.viewAllInvite=async (req,res)=>{
     try {
-        const InviteData=await Invite.findAll({
-            where:{sentTo:req.userId,status:"pending"},
-            attributes:["id"],
-            include:[
-                {model:User,attributes:["id","firstName","lastName","username"], as:"sender"}
-            ]
-        });
+        let InviteData=[];
+        const {inviteType}=req.query;
+        if(inviteType=="received"){
+            InviteData=await Invite.findAll({
+                where:{sentTo:req.userId,status:"pending"},
+                attributes:["id"],
+                include:[
+                    {model:User,attributes:["id","firstName","lastName","username"], as:"sender"}
+                ]
+            });
+        }else{
+            InviteData=await Invite.findAll({
+                where:{userId:req.userId,status:"pending"},
+                attributes:["id"],
+                include:[
+                    {model:User,attributes:["id","firstName","lastName","username"], as:"receiver"}
+                ]
+            });
+        }
+       
         res.status(200).json({data:InviteData,status:true});
     } catch (error) {
         console.log(error);
@@ -37,7 +51,7 @@ exports.viewAllInvite=async (req,res)=>{
 
 exports.deleteInvite=async (req,res)=>{
     try {
-        const {id}=req.body;
+        const {id}=req.params;
         const InviteData=await Invite.findOne({where:{id,userId:req.userId,status:"pending"}});
         if(InviteData){
             await InviteData.destroy();

@@ -1,32 +1,48 @@
 "use client";
-import { addContactAction, rejectInviteAction } from '@/actions/contact.actions';
+import { addContactAction } from '@/actions/contact.actions';
 import { Notify } from 'notiflix';
 import React from 'react';
 import { FaCheckCircle } from "react-icons/fa";
 import { FaBan } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { deleteInvitation, rejectInviteAction } from '@/actions/auth.actions';
 
-export default function InvitesCard({ name, email,id }: { name: string; email: string; id:string; }) {
-    const router=useRouter();
-    const handleAddContact=(id:string)=>async ()=>{
-        const addResponse=await addContactAction(id);
-        if(addResponse.status){
+
+export default function InvitesCard({ name, email, id, inviteTab = "received" }: { name: string; email: string; id: string; inviteTab?: "received" | "sent" }) {
+    const router = useRouter();
+    const handleAddContact = (Iid: string) => async () => {
+        const addResponse = await addContactAction(Iid);
+        if (addResponse.status) {
             Notify.success(addResponse.message);
             router.refresh();
-        }else{
+        } else {
             Notify.failure(addResponse.message);
         }
     }
 
-    const handleRejectInvite=(id:string)=>async ()=>{
-        const addResponse=await rejectInviteAction(id);
-        if(addResponse.status){
+    const handleRejectInvite = (Iid: string) => async () => {
+        const addResponse = await rejectInviteAction(Iid);
+        if (addResponse.status) {
             Notify.success(addResponse.message);
             router.refresh();
-        }else{
+        } else {
             Notify.failure(addResponse.message);
         }
     }
+
+    const handleDelete = (Iid: string) => async () => {
+        const deleteInviteResponse = await deleteInvitation(Iid);
+        if (deleteInviteResponse.status) {
+            Notify.success(deleteInviteResponse.message);
+            router.refresh();
+        } else {
+            Notify.failure(deleteInviteResponse.message);
+        }
+    }
+
+
+
     return (
         <>
             <div className="flex items-center p-3 bg-white rounded-md shadow-lg">
@@ -43,10 +59,17 @@ export default function InvitesCard({ name, email,id }: { name: string; email: s
                             {email}
                         </h3>
                     </div>
-                    <div className="flex gap-3 pt-2 pl-3">
-                        <FaCheckCircle onClick={handleAddContact(id)} className='p-0.5 w-5 h-5 hover:scale-125 duration-200 hover:cursor-pointer stroke-2 text-gray-400 hover:text-green-500' />
-                        <FaBan onClick={handleRejectInvite(id)} className='p-0.5 w-5 h-5 hover:scale-125 duration-200 hover:cursor-pointer border-0 stroke-2 text-gray-400 hover:text-red-500' />
-                    </div>
+                    {inviteTab == "received" ? (
+                        <div className="flex gap-3 pt-2 pl-3">
+                            <FaCheckCircle onClick={handleAddContact(id)} className='p-0.5 w-5 h-5 hover:scale-125 duration-200 hover:cursor-pointer stroke-2 text-gray-400 hover:text-green-500' />
+                            <FaBan onClick={handleRejectInvite(id)} className='p-0.5 w-5 h-5 hover:scale-125 duration-200 hover:cursor-pointer border-0 stroke-2 text-gray-400 hover:text-red-500' />
+                        </div>
+                    ) : (
+                        <div className="flex gap-3 pt-2 pl-3">
+                            <RiDeleteBin5Line onClick={handleDelete(id)} className='p-0.5 w-5 h-5 hover:scale-125 duration-200 hover:cursor-pointer border-0 stroke-2 text-gray-400 hover:text-red-500' />
+                        </div>
+                    )}
+
                 </section>
             </div>
         </>

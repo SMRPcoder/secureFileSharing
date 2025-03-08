@@ -20,10 +20,10 @@ const Contact=db.define("contacts",{
 },{timestamps:true});
 
 
-Contact.belongsTo(User);
-User.hasMany(Contact);
+Contact.belongsTo(User,{foreignKey:"userId",as:"user"});
+User.hasMany(Contact,{foreignKey:"userId",as:"user"});
 
-Contact.belongsTo(User,{foreignKey:"contactPersonId"});
-User.hasMany(Contact,{foreignKey:"contactPersonId"});
+Contact.belongsTo(User,{foreignKey:"contactPersonId",as:"contact"});
+User.hasMany(Contact,{foreignKey:"contactPersonId",as:"contact"});
 
 module.exports=Contact;

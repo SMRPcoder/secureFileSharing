@@ -42,16 +42,17 @@ const addContactAction=async (id:string)=>{
     }
 }
 
-const rejectInviteAction=async (id:string)=>{
+export const viewAllContactAction=async ()=>{
     const cookieStore = await cookies();
     try {
         const AuthAxiosInstance = $AuthAxios(cookieStore);
-        const response = await AuthAxiosInstance.post<ResponseFromServer>("/invites/reject", {id});
+        const response = await AuthAxiosInstance.get<ResponseFromServer>("/contacts/viewAll");
         return response.data;
     } catch (error) {
         console.log(error);
         return HandleError(error);
-    }
+    } 
 }
 
-export {getUserList,sendInvite,addContactAction,rejectInviteAction};
+
+export {getUserList,sendInvite,addContactAction};
