@@ -1,20 +1,25 @@
 const {Sequelize}=require("sequelize");
 
+// postgresql=========================================
+// const db=new Sequelize({
+//     database:"sft",
+//     host:"localhost",
+//     dialect:"postgres",
+//     username:"postgres",
+//     port:5432,
+//     password:"root",
+    
+// });
+
+//mysql==============================
 const db=new Sequelize({
-    // dialect:"mysql",
-    // username:"root",
+    dialect:"mysql",
+    username:"root",
     database:"sft",
     host:"localhost",
-    // port:3306,
-    // password:"",
-    // logging:false
-    dialect:"postgres",
-    username:"postgres",
-    port:5432,
-    password:"root",
-    
+    port:3306,
+    password:"",
 });
-
 
 
 module.exports=db;

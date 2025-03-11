@@ -6,7 +6,7 @@ import { LoginFormType } from "@/yups/auth/login.yup";
 import { ResponseFromServer } from "@/types/common.types";
 import { cookies } from "next/headers";
 import $AuthAxios from "@/config/auth.axios.config";
-
+import * as jwt from "jsonwebtoken";
 
 export const RegisterUser = async (values: RegisterFormType):Promise<ResponseFromServer> => {
     try {
@@ -54,5 +54,14 @@ export const deleteInvitation=async (id:string)=>{
     } catch (error) {
         console.log(error);
         return HandleError(error);
+    }
+}
+
+export const setPayload=async ()=>{
+    const cookieStore = await cookies();
+    const tokenValue=cookieStore.get("token");
+    if(tokenValue){
+        const payload=jwt.verify(tokenValue.value,process.env.JWT_SECRET!);
+        cookieStore.set("ud_id",JSON.stringify(payload));
     }
 }

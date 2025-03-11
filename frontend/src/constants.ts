@@ -1,0 +1,1 @@
+export const BACKEND_STATIC_URL="http://localhost:3000/"

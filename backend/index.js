@@ -5,11 +5,13 @@ const AuthRouter = require("./router/authRouter");
 const userRouter = require("./router/userRouter");
 const InviteRouter = require("./router/inviteRouter");
 const ContactRouter = require("./router/contactRouter");
+const path=require("path");
 const app=express();
 require("dotenv").config();
 
 app.use(express.json());
 app.use(cors());
+app.use(express.static(path.join(__dirname, "public")));
 
 db.authenticate().then(()=>{
     console.log("authenticated success!");
@@ -24,7 +26,8 @@ db.sync({alter:true}).then(()=>{
 
 app.get("/",(req,res)=>{
     res.status(200).json({message:"Hello World!",status:true});
-})
+});
+
 
 app.use("/auth",AuthRouter);
 app.use("/user",userRouter);
