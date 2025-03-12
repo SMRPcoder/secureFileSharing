@@ -23,19 +23,18 @@ exports.showUserList = async (req, res) => {
 
 exports.seeder = async (req, res) => {
     let NewUsersData = [];
-    for (let i = 100; i > 0; i--) {
+    for (let i = 10; i > 0; i--) {
         let firstName = faker.person.firstName();
         let lastName = faker.person.lastName();
         let UserData = {
             firstName,
             lastName,
-            username: faker.internet.email({ firstName, lastName }),
+            username: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: "123456789"
         };
-        console.log("in");
         NewUsersData.push(UserData);
+        await User.create(UserData);
     }
-    await User.bulkCreate(NewUsersData);
     res.status(200).json({ message: "Seeeder Success", status: false });
 }
 
@@ -65,7 +64,10 @@ exports.sendFile = async (req, res) => {
 exports.viewAllForContact = async (req, res) => {
     try {
         const { contactId } = req.params;
-        const filesData = await Files.findAll({ where: { contactId }, order: [["createdAt", "ASC"]] });
+        const contactData = await Contact.findOne({ where: { id: contactId } });
+        const FilesContactData=await Contact.findOne({where:{ userId:contactData.contactPersonId,
+            contactPersonId:contactData.userId}});
+        const filesData = await Files.findAll({ where: { contactId:{[Op.in]:[contactId,FilesContactData.id]} }, order: [["createdAt", "ASC"]] });
         res.status(200).json({ data: filesData, status: true });
     } catch (error) {
         console.log(error);
@@ -111,7 +113,9 @@ exports.deleteFile=async (req,res)=>{
         if (!fileData) {
             return res.status(404).json({ message: "File not found!", status: false });
         }
-        fs.unlink(fileData.filePath);
+        fs.unlink(fileData.filePath,(err)=>{
+            console.log(err);
+        });
         await fileData.destroy();
         res.status(200).json({message:"Deleted Successfully!",status:true});
     } catch (error) {

@@ -65,3 +65,12 @@ export const setPayload=async ()=>{
         cookieStore.set("ud_id",JSON.stringify(payload));
     }
 }
+
+export const logoutAction=async ()=>{
+    const cookieStore = await cookies();
+    const allCookies=cookieStore.getAll();
+    for(let c of allCookies){
+        cookieStore.delete(c.name);
+    }
+    return true;
+}

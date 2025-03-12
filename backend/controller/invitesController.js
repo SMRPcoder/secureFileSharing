@@ -1,7 +1,6 @@
 const { Op } = require("sequelize");
 const Invite = require("../models/Invite");
 const User = require("../models/User");
-const { request } = require("express");
 
 
 exports.sentInvite=async (req,res)=>{

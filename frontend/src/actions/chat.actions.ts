@@ -45,3 +45,15 @@ export const SendFileAction=async (values:FormData)=>{
         return HandleError(error);
     }
 }
+
+export const DeleteFileAction=async (id:String)=>{
+    const cookieStore = await cookies();
+    try {
+        const AuthAxiosInstance = $AuthAxios(cookieStore);
+        const response = await AuthAxiosInstance.delete<ResponseFromServer>(`/user/deleteFile/${id}`);
+        return response.data;
+    } catch (error) {
+        console.log(error);
+        return HandleError(error);
+    }
+}

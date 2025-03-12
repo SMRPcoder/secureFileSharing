@@ -31,7 +31,7 @@ exports.login=async (req,res)=>{
     if(validationError){
         res.status(400).json({message:validationError.message,status:false});
     }else{
-        const userData=await User.findOne({username:loginBody.username});
+        const userData=await User.findOne({where:{username:loginBody.username}});
         if(userData){
             const isVerified=await bcrypt.compare(loginBody.password,userData.password);
             if(isVerified){

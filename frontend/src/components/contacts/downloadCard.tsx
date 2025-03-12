@@ -1,23 +1,47 @@
-import { downloadFileAction } from '@/actions/chat.actions';
-import React, { useEffect } from 'react';
+import { DeleteFileAction } from '@/actions/chat.actions';
+import { Notify } from 'notiflix';
+import React from 'react';
 
-const DownloadCard = ({ fileName, downloadUrl }:{fileName:string; downloadUrl:string;}) => {
-  const handleDownload = () => {
-    // Create a temporary anchor element to trigger the download
-    const link = document.createElement('a');
-    link.setAttribute("download", fileName || "file-" + Date.now());
-    link.setAttribute("target", "_blank"); // Optional: Open in a new tab
-    link.href=downloadUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+interface DownloadCardProps {
+  fileName: string;
+  downloadUrl: string;
+  isTarget?: boolean;
+  fileData?: {
+    id: string;
+    setChatRefresh: React.Dispatch<React.SetStateAction<string>>
+  }
+}
+const DownloadCard = ({ fileName, downloadUrl, isTarget, fileData }:DownloadCardProps) => {
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(downloadUrl);
+      const blob = await response.blob();
+
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName || "downloaded-file";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      if (isTarget && fileData) {
+        const deletedResponse = await DeleteFileAction(fileData.id);
+        if(deletedResponse.status){
+          fileData.setChatRefresh(`${Date.now()}`);
+          Notify.success(deletedResponse.message);
+        }else{
+          Notify.failure(deletedResponse.message);
+        }
+      }
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   };
 
   return (
     <div className="max-w-sm mx-auto">
       <div
         className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-        onClick={handleDownload}
       >
         {/* File Icon (you can replace this with an SVG or image if needed) */}
         <div className="text-blue-500">

@@ -14,7 +14,10 @@ exports.addContact = async (req = request, res = response) => {
             const userData = await User.findOne({ where: { id: inviteData.userId } });
             if (userData) {
                 const newContactData = { userId: req.userId, contactPersonId: inviteData.userId };
+                const new2ContactData = { userId: inviteData.userId , contactPersonId:req.userId };
                 await Contact.create(newContactData);
+                await Contact.create(new2ContactData);
+
                 await inviteData.update({ status: "accepted" });
                 res.status(201).json({ message: "created successfully!", status: true });
             } else {

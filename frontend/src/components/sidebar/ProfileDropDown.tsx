@@ -1,10 +1,20 @@
 "use client";
+import { logoutAction } from '@/actions/auth.actions';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 import { CgProfile } from 'react-icons/cg'
 
 export default function ProfileDropDown() {
 
     const [isDrop, setDrop] = useState(false);
+    const router=useRouter();
+
+    const handleLogout=async ()=>{
+        const isLoggedOut=await logoutAction();
+        if(isLoggedOut){
+            router.push("/login")
+        }
+    }
     return (
         <>
             <div className="relative font-[sans-serif] w-max mx-auto">
@@ -22,7 +32,7 @@ export default function ProfileDropDown() {
                 </button>
                 {isDrop && (
                     <ul id="dropdownMenu" className='absolute shadow-[0_8px_19px_-7px_rgba(6,81,237,0.2)] bg-white py-2 z-[1000] min-w-full w-max divide-y max-h-96 overflow-auto'>
-                        <li className='py-3 px-5 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer'>Logout</li>
+                        <li onClick={handleLogout} className='py-3 px-5 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer'>Logout</li>
                         {/* <li className='py-3 px-5 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer'>Cloth set</li>
                         <li className='py-3 px-5 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer'>Sales details</li>
                         <li className='py-3 px-5 hover:bg-gray-50 text-gray-800 text-sm cursor-pointer'>Marketing</li> */}
