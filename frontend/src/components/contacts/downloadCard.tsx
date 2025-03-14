@@ -63,7 +63,7 @@ const DownloadCard = ({ fileName, downloadUrl, isTarget, fileData }:DownloadCard
 
         {/* File Info */}
         <div className="flex-1">
-          <p className="text-gray-800 font-medium">{fileName || 'Download File'}</p>
+          <p className="text-gray-800 text-sm font-light">{fileName || 'Download File'}</p>
           <p className="text-sm text-gray-500">Click to download</p>
         </div>
 

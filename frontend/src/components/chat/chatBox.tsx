@@ -1,5 +1,5 @@
 "use client";
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { FaCircleUser } from 'react-icons/fa6'
 import { IoIosSend } from 'react-icons/io'
 import DownloadCard from '../contacts/downloadCard'
@@ -16,6 +16,7 @@ export default function ChatBox({ selectedContact }: { selectedContact: Contacts
     const [formValues, setFormValues] = useState<FormData | null>(null);
     const [chatRefresh, setChatRefresh] = useState<string>("");
     const userIdString = Cookie.get("ud_id");
+    const fileInputRef = useRef<HTMLInputElement>(null);
     let userId: string;
     if (userIdString) {
         const UserJson: UserSessionToken = JSON.parse(userIdString);
@@ -30,8 +31,15 @@ export default function ChatBox({ selectedContact }: { selectedContact: Contacts
             sentValues.append("contactId", selectedContact.id);
             sentValues.append("sentTo", selectedContact.contact.id);
             setFormValues(sentValues);
+            
         }
     }
+
+    const handleClearFile = () => {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Clear the file input
+        }
+      };
 
     const handleSent = async () => {
         if (formValues) {
@@ -39,6 +47,7 @@ export default function ChatBox({ selectedContact }: { selectedContact: Contacts
             if (SentResponse.status) {
                 Notify.success(SentResponse.message);
                 setChatRefresh(`${Date.now()}`);
+                handleClearFile();
             } else {
                 Notify.failure(SentResponse.message);
             }
@@ -89,7 +98,7 @@ export default function ChatBox({ selectedContact }: { selectedContact: Contacts
                             <div className="flex flex-col items-end max-w-96 text-white rounded-lg p-3">
                                 <p className='italic font-thin text-sm text-black mx-5' >(you)</p>
                                 {/* <p>Hi Alice! I'm good, just finished a great book. How about you?</p> */}
-                                <DownloadCard downloadUrl={chatfile.filePath.replace("public", BACKEND_STATIC_URL)} fileName='something' />
+                                <DownloadCard downloadUrl={chatfile.filePath.replace("public", BACKEND_STATIC_URL)} fileName={`new_file_${Date.now()}`} />
                             </div>
                             <div className="w-9 h-9 rounded-full flex items-center justify-center ml-2">
                                 <FaCircleUser className='w-8 h-8 rounded-full' />
@@ -121,32 +130,12 @@ export default function ChatBox({ selectedContact }: { selectedContact: Contacts
                             </div>
                         )
                 ))}
-                {/* <!-- Incoming Message --> */}
-                {/* <div className="flex mb-4 cursor-pointer">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center mr-2">
-                    <FaCircleUser className='w-8 h-8 rounded-full' />
-                </div>
-                  <div className="flex flex-col max-w-96 bg-white rounded-lg p-3">
-                  <p className='italic font-thin text-sm text-black' >{selectedContact.contact.firstName}</p>
-                    <DownloadCard downloadUrl='#' fileName='something' />
-                  </div>
-                </div> */}
-
-                {/* <!-- Outgoing Message --> */}
-                {/* <div className="flex justify-end mb-4 cursor-pointer">
-                  <div className="flex max-w-96 bg-indigo-500 text-white rounded-lg p-3 gap-3">
-                    <p>Hi Alice! I'm good, just finished a great book. How about you?</p>
-                  </div>
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center ml-2">
-                    <FaCircleUser className='w-8 h-8 rounded-full' />
-                  </div>
-                </div> */}
             </div>
 
             {/* <!-- Chat Input --> */}
             <div className="bg-white border-t border-gray-300 p-4 absolute bottom-0 w-3/4">
                 <div className="flex items-center">
-                    <input onChange={handleChangeFile} type="file" placeholder="Type a message..." className="w-full p-2 text-black rounded-md border border-gray-400 focus:outline-none focus:border-blue-500" />
+                    <input onChange={handleChangeFile} ref={fileInputRef} type="file" placeholder="Type a message..." className="w-full p-2 text-black rounded-md border border-gray-400 focus:outline-none focus:border-blue-500" />
                     <button onClick={handleSent} className="bg-indigo-500 text-white px-4 py-2 rounded-md ml-2">
                         <IoIosSend size={20} />
                     </button>
