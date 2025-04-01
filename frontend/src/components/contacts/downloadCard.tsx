@@ -1,4 +1,5 @@
 import { DeleteFileAction } from '@/actions/chat.actions';
+import { ChatFileType, ContactsType } from '@/types/contacts.types';
 import { Notify } from 'notiflix';
 import React from 'react';
 
@@ -9,30 +10,146 @@ interface DownloadCardProps {
   fileData?: {
     id: string;
     setChatRefresh: React.Dispatch<React.SetStateAction<string>>
+  },
+  chatFile: ChatFileType,
+  selectedContact: ContactsType
+}
+const DownloadCard = ({ fileName, downloadUrl, isTarget, fileData, selectedContact, chatFile }: DownloadCardProps) => {
+
+  // Convert Base64 back to ArrayBuffer
+  function base64ToArrayBuffer(base64: string) {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
+
+  // Derive AES key from password
+  async function getPasswordKey(password: string) {
+    const enc = new TextEncoder();
+    const keyMaterial = await window.crypto.subtle.importKey(
+      "raw",
+      enc.encode(password),
+      { name: "PBKDF2" },
+      false,
+      ["deriveKey"]
+    );
+
+    return window.crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: new Uint8Array(16), // Must use the same salt as encryption
+        iterations: 100000,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["decrypt"]
+    );
+  }
+
+  // Decrypt the private key
+  async function decryptPrivateKey(encryptedKeyBase64: string, ivBase64: string, password: string) {
+    const encryptedKey = base64ToArrayBuffer(encryptedKeyBase64);
+    const iv = base64ToArrayBuffer(ivBase64);
+    const passwordKey = await getPasswordKey(password);
+
+    const decryptedKeyBuffer = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      passwordKey,
+      encryptedKey
+    );
+    return window.crypto.subtle.importKey(
+      "pkcs8",
+      decryptedKeyBuffer,
+      { name: "ECDH", namedCurve: "P-256" },
+      true,
+      ["deriveKey"]
+    );
+  }
+
+  async function deriveAESKey(privateKey: CryptoKey, senderPublicKeyBase64: string) {
+    const senderPublicKeyBuffer = base64ToArrayBuffer(senderPublicKeyBase64);
+    
+    const senderPublicKey = await window.crypto.subtle.importKey(
+        "spki",
+        senderPublicKeyBuffer,
+        { name: "ECDH", namedCurve: "P-256" },
+        true,
+        []
+    );
+
+    return window.crypto.subtle.deriveKey(
+        { name: "ECDH", public: senderPublicKey },
+        privateKey,
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["decrypt"]
+    );
+}
+
+async function decryptFile(encryptedFile: Blob, aesKey: CryptoKey) {
+  const fileBuffer = await encryptedFile.arrayBuffer();
+  const iv = fileBuffer.slice(0, 12); // First 12 bytes are IV
+  const encryptedData = fileBuffer.slice(12); // Rest is the encrypted data
+
+  const decryptedBuffer = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      aesKey,
+      encryptedData
+  );
+
+  return new Blob([decryptedBuffer], { type: encryptedFile.type });
+}
+
+async function handleFileDecryption(encryptedFile: Blob, encryptedPrivateKey: string, iv: string, senderPublicKey: string, password: string) {
+  try {
+      // 1️⃣ Decrypt the private key using the password
+      const recipientPrivateKey = await decryptPrivateKey(encryptedPrivateKey, iv, password);
+      // 2️⃣ Derive AES key using the recipient’s private key and sender's public key
+      const aesKey = await deriveAESKey(recipientPrivateKey, senderPublicKey);
+      // 3️⃣ Decrypt the file using the derived AES key
+      const decryptedBlob = await decryptFile(encryptedFile, aesKey);
+
+     return decryptedBlob;
+  } catch (error) {
+      console.error("Decryption failed:", error);
   }
 }
-const DownloadCard = ({ fileName, downloadUrl, isTarget, fileData }:DownloadCardProps) => {
+
+
   const handleDownload = async () => {
     try {
       const response = await fetch(downloadUrl);
-      const blob = await response.blob();
-
+      const encryptedblob = await response.blob();
+      const decryptedBlob=await handleFileDecryption(
+        encryptedblob,
+        chatFile.privateKey,
+        chatFile.privateKeyIv,
+        chatFile.publicKey,
+        isTarget?selectedContact.userId:selectedContact.contactPersonId);
       // Create a link element and trigger download
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName || "downloaded-file";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      if (isTarget && fileData) {
-        const deletedResponse = await DeleteFileAction(fileData.id);
-        if(deletedResponse.status){
-          fileData.setChatRefresh(`${Date.now()}`);
-          Notify.success(deletedResponse.message);
-        }else{
-          Notify.failure(deletedResponse.message);
+      if(decryptedBlob){
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([decryptedBlob], { type: chatFile.fileType }));
+        link.download = fileName || "downloaded-file";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if (isTarget && fileData) {
+          const deletedResponse = await DeleteFileAction(fileData.id);
+          if (deletedResponse.status) {
+            fileData.setChatRefresh(`${Date.now()}`);
+            Notify.success(deletedResponse.message);
+          } else {
+            Notify.failure(deletedResponse.message);
+          }
         }
       }
+      
     } catch (error) {
       console.error("Download failed:", error);
     }

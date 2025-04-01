@@ -25,6 +25,22 @@ const Files=db.define("files",{
     contactId:{
         allowNull:false,
         type:DataTypes.UUID
+    },
+    publicKey:{
+        allowNull:false,
+        type:DataTypes.TEXT
+    },
+    privateKey:{
+        allowNull:false,
+        type:DataTypes.TEXT
+    },
+    privateKeyIv:{
+        allowNull:false,
+        type:DataTypes.TEXT
+    },
+    fileType:{
+        allowNull:false,
+        type:DataTypes.STRING
     }
 },{timestamps:true});
 

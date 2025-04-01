@@ -41,12 +41,15 @@ exports.seeder = async (req, res) => {
 exports.sendFile = async (req, res) => {
     const ta = await db.transaction();
     try {
-        const { contactId, sentTo } = req.body;
+        const { contactId, sentTo,publicKey,privateKey,privateKeyIv,fileType } = req.body;
         const userId = req.userId;
         const contactData = await Contact.findOne({ where: { id: contactId } });
         const filePath = req.file.path;
         if (contactData) {
-            await Files.create({ contactId, userId, sentTo, filePath }, { transaction: ta });
+            await Files.create({ 
+                contactId, userId, sentTo, 
+                filePath,publicKey,privateKey,
+                privateKeyIv,fileType }, { transaction: ta });
             await ta.commit();
             res.status(200).json({ message: "Stored And Saved Sucessfully!", status: true });
         } else {
@@ -55,7 +58,7 @@ exports.sendFile = async (req, res) => {
         }
     } catch (error) {
         await ta.rollback();
-        if (req.file) fs.unlink(req.file.path);
+        // if (req.file) fs.unlink(req.file.path);
         console.log(error);
         res.status(500).json({ message: "Internal Error Happend!", status: false });
     }
@@ -75,7 +78,7 @@ exports.viewAllForContact = async (req, res) => {
     }
 }
 
-exports.downloadFile = async (req, res=response) => {
+exports.getFileForDownload = async (req, res=response) => {
     try {
         const { id } = req.params; // or req.params.id if sent via URL params
         const fileData = await Files.findOne({ where: { id } });
@@ -84,21 +87,7 @@ exports.downloadFile = async (req, res=response) => {
             return res.status(404).json({ message: "File not found!", status: false });
         }
 
-        const filePath = fileData.filePath; // Ensure this contains the full path
-        const fileName = path.basename(filePath); // Extract file name
-        const ogFilePath=path.resolve(__dirname,"../",filePath);
-        res.sendFile(ogFilePath,(err) => {
-            if (err) {
-                console.error("File Download Error:", err);
-                res.status(500).json({ message: "Error downloading the file.", status: false });
-            }
-        })
-        // res.download(filePath, fileName, (err) => {
-        //     if (err) {
-        //         console.error("File Download Error:", err);
-        //         res.status(500).json({ message: "Error downloading the file.", status: false });
-        //     }
-        // });
+        res.status(200).json({data:fileData,status:true});
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Error Happend!", status: false });

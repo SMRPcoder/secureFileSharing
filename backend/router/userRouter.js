@@ -11,7 +11,7 @@ userRouter.get("/seed",userController.seeder);
 userRouter.post("/uploadFile",AuthUser,upload.single("file"),userController.sendFile);
 userRouter.get("/viewAllFiles/:contactId",AuthUser,userController.viewAllForContact);
 
-userRouter.get("/downloadFile/:id",AuthUser,userController.downloadFile);
+userRouter.get("/downloadFile/:id",AuthUser,userController.getFileForDownload);
 userRouter.delete("/deleteFile/:id",AuthUser,userController.deleteFile);
 
 module.exports=userRouter;

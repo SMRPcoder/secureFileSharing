@@ -21,4 +21,8 @@ export interface ChatFileType {
     userId: string;
     sentTo: string;
     contactId: string;
+    publicKey:string;
+    privateKey:string;
+    privateKeyIv:string;
+    fileType:string;
 }

@@ -21,6 +21,10 @@ const storage = multer.diskStorage({
   
   // File filter (Optional: Allow only specific file types)
   const fileFilter = (req, file, cb) => {
+    console.log(file);
+    if (!file) {
+      return cb(new Error("File not found"), false);
+    }
     cb(null, true); // Accept the file
 
     // if (file.mimetype.startsWith("image/")) {
