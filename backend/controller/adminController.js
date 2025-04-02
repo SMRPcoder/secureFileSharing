@@ -8,8 +8,13 @@ exports.viewAllUsers=async (req,res)=>{
         if(!page)page=1;
         const limit=20;
         const offset=(page*limit)-limit;
-        const userData=await User.findAndCountAll({attributes:{exclude:["password"]},limit,offset});
-        res.status(200).json({data:userData,status:true});
+        const userData=await User.findAndCountAll({
+            attributes:{exclude:["password"]},
+            limit,
+            offset,
+            order:[["createdAt","DESC"]]
+        });
+        res.status(200).json({data:userData.rows,count:userData.count,status:true});
     } catch (error) {
         console.log(error);
         res.status(500).json({message:"Internal Server Error Happend!",status:false});
@@ -31,7 +36,7 @@ exports.viewAllFiles=async (req,res)=>{
             limit,
             offset
         });
-        res.status(200).json({data:filesData,status:true});
+        res.status(200).json({data:filesData.rows,count:filesData.count,status:true});
     } catch (error) {
         console.log(error);
         res.status(500).json({message:"Internal Server Error Happend!",status:false});

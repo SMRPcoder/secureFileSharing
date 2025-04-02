@@ -66,6 +66,15 @@ export const setPayload=async ()=>{
     }
 }
 
+export const setAdminPayload=async ()=>{
+    const cookieStore = await cookies();
+    const tokenValue=cookieStore.get("admin-token");
+    if(tokenValue){
+        const payload=jwt.verify(tokenValue.value,process.env.JWT_SECRET!);
+        cookieStore.set("ud_id",JSON.stringify(payload));
+    }
+}
+
 export const logoutAction=async ()=>{
     const cookieStore = await cookies();
     const allCookies=cookieStore.getAll();
@@ -73,4 +82,19 @@ export const logoutAction=async ()=>{
         cookieStore.delete(c.name);
     }
     return true;
+}
+
+export const LoginAdminAction = async (values: LoginFormType):Promise<ResponseFromServer> => {
+    const cookiestore=await cookies();
+    try {
+        const response = await $Axios.post<{ message: string; status: boolean; }>("/auth/adminLogin", values);
+        const loginrespData= response.data as ResponseFromServer;
+        if(loginrespData.status){
+            cookiestore.set("admin-token",loginrespData.token!);
+        }
+        return loginrespData;
+    } catch (error) {
+        console.log(error);
+        return HandleError(error);
+    }
 }

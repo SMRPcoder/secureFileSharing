@@ -6,6 +6,7 @@ const userRouter = require("./router/userRouter");
 const InviteRouter = require("./router/inviteRouter");
 const ContactRouter = require("./router/contactRouter");
 const path=require("path");
+const AdminRouter = require("./router/adminRoutes");
 const app=express();
 require("dotenv").config();
 
@@ -33,6 +34,7 @@ app.use("/auth",AuthRouter);
 app.use("/user",userRouter);
 app.use("/invites",InviteRouter);
 app.use("/contacts",ContactRouter);
+app.use("/admin",AdminRouter);
 
 
 app.listen(3000,()=>{

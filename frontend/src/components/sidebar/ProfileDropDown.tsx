@@ -22,7 +22,7 @@ export default function ProfileDropDown() {
             const userDataStr = Cookies.get("ud_id");
             if (userDataStr) {
                 const userData = JSON.parse(userDataStr);
-                setUserName(userData.firstName + userData.lastName)
+                setUserName(userData.firstName + (userData.lastName??""))
             }
         }
     }, [])

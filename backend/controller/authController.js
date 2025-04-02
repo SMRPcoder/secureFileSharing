@@ -50,3 +50,17 @@ exports.login=async (req,res)=>{
 exports.checkProtected=async(req,res)=>{
     res.status(200).json({message:"Hello From Protected Route!",status:true});
 }
+
+exports.adminLogin=async (req,res)=>{
+    try {
+        const {username,password}=req.body;
+        const { ADMIN_USERNAME: adminUsername, ADMIN_PASSWORD: adminPassword } = process.env;
+        if((username==adminUsername)&&(password==adminPassword)){
+            const token=jwt.sign({username:username,firstName:"admin",role:"ADMIN"},process.env.JWT_SECRET,{expiresIn:"24h"});
+            res.status(200).json({message:"Login Success",token,status:true});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message:"Internal Error Happend!",status:false});
+    }
+}
